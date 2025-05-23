@@ -1,3 +1,4 @@
 ﻿# M165-Software
 
-Ich habe die aufgaben 1.1 - 2.7 erledigt
+Tag2: Ich habe die aufgaben 1.1 - 2.7 erledigt
+Tag3: ich habe die aufgaben 3.1 - 3.5 und 5.1 -5.4 erledigt
