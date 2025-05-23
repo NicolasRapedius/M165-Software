@@ -2,8 +2,13 @@ import pymongo
 from bson import ObjectId
 from datetime import datetime
 
-def print_districts(collection):
-    districts = collection.distinct("borough")
+def print_districts(neighborhoods_collection):
+    districts = neighborhoods_collection.distinct("borough")
+    if not districts:
+        print("Keine Stadtbezirke gefunden. Beispiel-Dokument aus 'neighborhoods':")
+        beispiel = neighborhoods_collection.find_one()
+        print(beispiel)
+        return
     print("Stadtbezirke:")
     for d in districts:
         print(f" - {d}")
@@ -25,12 +30,19 @@ def print_top3_restaurants(collection):
 
 def find_nearest_restaurant(collection):
     le_perigord = collection.find_one({"name": "Le Perigord"})
-    if not le_perigord or "address" not in le_perigord or "coord" not in le_perigord["address"]:
+    if not le_perigord or not le_perigord.get("address") or not le_perigord["address"].get("coord"):
         print("Le Perigord oder Koordinaten nicht gefunden.")
         return
     coords = le_perigord["address"]["coord"]
     nearest = collection.find({
-        "address.coord": {"$near": coords},
+        "address.coord": {
+            "$near": {
+                "$geometry": {
+                    "type": "Point",
+                    "coordinates": coords
+                }
+            }
+        },
         "name": {"$ne": "Le Perigord"}
     }).limit(1)
     print("Nächstgelegenes Restaurant zu Le Perigord:")
@@ -83,8 +95,9 @@ def add_rating(collection, rest_id):
 
 def main():
     client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
-    db = client["restaurants"]  # Passe ggf. den DB-Namen an
-    collection = db["restaurants"]  # Passe ggf. den Collection-Namen an
+    db = client["Restaurants"]  # Datenbankname angepasst
+    restaurants_collection = db["restaurants"]
+    neighborhoods_collection = db["neighborhoods"]
 
     while True:
         print("\n1) Stadtbezirke anzeigen")
@@ -94,15 +107,15 @@ def main():
         print("0) Beenden")
         choice = input("Auswahl: ").strip()
         if choice == "1":
-            print_districts(collection)
+            print_districts(neighborhoods_collection)
         elif choice == "2":
-            print_top3_restaurants(collection)
+            print_top3_restaurants(restaurants_collection)
         elif choice == "3":
-            find_nearest_restaurant(collection)
+            find_nearest_restaurant(restaurants_collection)
         elif choice == "4":
-            rest_id = search_restaurants(collection)
+            rest_id = search_restaurants(restaurants_collection)
             if rest_id:
-                add_rating(collection, rest_id)
+                add_rating(restaurants_collection, rest_id)
         elif choice == "0":
             break
         else:
