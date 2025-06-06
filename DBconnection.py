@@ -1,3 +1,4 @@
+import os
 import pymongo
 from bson import ObjectId
 from datetime import datetime
@@ -94,7 +95,8 @@ def add_rating(collection, rest_id):
         print("Fehler beim Hinzufügen der Bewertung.")
 
 def main():
-    client = pymongo.MongoClient("mongodb://127.0.0.1:27017/")
+    mongo_url = os.environ.get("MONGO_URL", "mongodb://127.0.0.1:27017/")
+    client = pymongo.MongoClient(mongo_url)
     db = client["Restaurants"]  # Datenbankname angepasst
     restaurants_collection = db["restaurants"]
     neighborhoods_collection = db["neighborhoods"]
