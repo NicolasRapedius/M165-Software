@@ -1,6 +1,6 @@
 import pymongo
 import matplotlib.pyplot as plt
-from datetime import datetime
+from datetime import datetime, timedelta
 
 MONGO_URL = "mongodb://127.0.0.1:27017/"
 DB_NAME = "Restaurants"
@@ -11,7 +11,10 @@ db = client[DB_NAME]
 collection = db[COLLECTION_NAME]
 
 def fetch_logs():
-    logs = list(collection.find().sort("timestamp", 1))
+    today = datetime.now().date()
+    start = datetime.combine(today, datetime.min.time())
+    end = datetime.combine(today, datetime.max.time())
+    logs = list(collection.find({"timestamp": {"$gte": start, "$lte": end}}).sort("timestamp", 1))
     times = [log["timestamp"] for log in logs]
     cpu = [log["cpu"] for log in logs]
     ram_used = [log["ram_used"] / (1024**3) for log in logs]  # in GB
